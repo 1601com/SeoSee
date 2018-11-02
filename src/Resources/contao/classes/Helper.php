@@ -2,7 +2,6 @@
 
 namespace agentur1601com\seosee;
 use MatthiasMullie\Minify;
-use TijsVerkoyen\CssToInlineStyles\Exception;
 
 class Helper
 {
