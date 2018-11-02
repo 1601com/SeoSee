@@ -17,7 +17,7 @@
   },
   "extra": {
     "branch-alias": {
-      "master": "1.0"
+      "master": "1.0-dev"
     },
     "contao-manager-plugin": "agentur1601com\\seosee\\ContaoManager\\Plugin"
   },
