@@ -5,20 +5,21 @@ use MatthiasMullie\Minify;
 
 class Helper
 {
-    protected $assetsPath = TL_ROOT."/web/bundles/seosee";
+    protected $assetsPath =         TL_ROOT . "/web/assets";
 
-    protected $assetsPathScript;
-    protected $assetsPathStyles;
+    protected $assetsPathScript =   TL_ROOT . "/web/assets/js";
+
+    protected $assetsPathStyles =   TL_ROOT . "/web/assets/css";
 
     public function __construct()
     {
         if(!is_dir($this->assetsPath))
         {
-            throw new Exception("Assets-Folder do not exists");
+            throw new Exception("Assets folder do not exists.");
         }
-        $this->assetsPathScript = $this->assetsPath."/scripts";
+
         $this->createDir($this->assetsPathScript);
-        $this->assetsPathStyles = $this->assetsPath."/styles";
+
         $this->createDir($this->assetsPathStyles);
     }
 
@@ -111,7 +112,9 @@ class Helper
     public function generateReturnJsArray($foundedFiles,$savedFiles)
     {
         $savedFiles = array_reverse($savedFiles);
+
         $returnArray = [];
+
         foreach ($savedFiles as $savedFile)
         {
             foreach ($foundedFiles as $pathLoadedKey => $pathLoadedFile)
@@ -150,28 +153,35 @@ class Helper
         return $returnArray;
     }
 
-
+    /**
+     * @param array $filesArray
+     * @param string $subDir
+     * @param string $pathKey
+     * @return array
+     */
     public function generateMinFiles(array $filesArray, $subDir = "sub", $pathKey = "js_files_path")
     {
         if(!empty($subDir))
         {
-            $this->assetsPathScript = $this->assetsPathScript."/".self::safePath($subDir);
+            $this->assetsPathScript = $this->assetsPathScript . "/" . self::safePath($subDir);
 
             if(!$this->createDir($this->assetsPathScript))
             {
-                throw new Exception("Can't create dir with name: ".$this->assetsPathScript);
+                throw new Exception("Can't create dir with name: " . $this->assetsPathScript);
             }
         }
 
         $this->cleanDir($this->assetsPathScript);
+
         foreach ($filesArray as &$file)
         {
-            $filePath = TL_ROOT.$file[$pathKey];
+            $filePath = TL_ROOT . $file[$pathKey];
+
             if(file_exists($filePath) && $file["select"])
             {
                 $minFileName = $this->generateMinFileName($file[$pathKey]);
 
-                $file["js_files_path_min"] = $this->assetsPathScript."/".$minFileName;
+                $file["js_files_path_min"] = $this->assetsPathScript . "/" . $minFileName;
 
                 try{
                     $this->safeMiniJs($filePath,$file["js_files_path_min"]);
@@ -209,9 +219,10 @@ class Helper
         }
 
         $minifier = new Minify\JS();
+
         if(is_string($sourcePath) && !file_exists($sourcePath))
         {
-            throw new Exception("Source file does not exists: ".addslashes($sourcePath));
+            throw new Exception("Source file does not exists: " . addslashes($sourcePath));
         }
         elseif(is_string($sourcePath) && file_exists($sourcePath))
         {
@@ -223,7 +234,7 @@ class Helper
             {
                 if(is_string($path) && !file_exists($path))
                 {
-                    throw new Exception("Source file does not exists: ".addslashes($path));
+                    throw new Exception("Source file does not exists: " . addslashes($path));
                 }
                 elseif (is_string($path) && !file_exists($path))
                 {
@@ -235,21 +246,33 @@ class Helper
         {
             throw new Exception("Source file does not exists. Must be string or string-array");
         }
+
         $minifier->minify($safePath);
+
         return $minifier;
     }
 
     /**
      * @param $dir
+     * @param string $nameContain
      * @return bool
      */
-    private function cleanDir($dir)
+    private function cleanDir($dir, $nameContain = "seosee")
     {
         if(is_dir($dir))
         {
-            $files = glob($dir.'/*');
-            foreach($files as $file){
-                if(is_file($file)) unlink($file);
+            $files = glob($dir . '/*');
+            foreach($files as $file)
+            {
+                $dataFile = pathinfo($file);
+                if(is_file($file) && strpos($dataFile["filename"], $nameContain) !== false)
+                {
+                    unlink($file);
+                }
+                elseif (is_file($file) && !$nameContain)
+                {
+                    unlink($file);
+                }
             }
             return true;
         }
@@ -276,6 +299,6 @@ class Helper
     protected function generateMinFileName(string $path)
     {
         $dataFile = pathinfo($path);
-        return md5($dataFile["dirname"])."_".$dataFile["filename"].".min.".$dataFile["extension"];
+        return trim("seosee_" . md5($dataFile["dirname"]) . "_" . $dataFile["filename"] . ".min." . $dataFile["extension"]);
     }
 }

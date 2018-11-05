@@ -69,8 +69,6 @@ $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeJsFiles'] = array(
             'copy' => false,
             'new' => false,
             'delete' => false,
-            //'up' => false,
-            //'down' => false,
         )
     ),
     'load_callback'           => array(array('seoseeJsFiles', 'loadJsFiles')),
@@ -101,6 +99,7 @@ class seoseeJsFiles extends Backend
         }
 
         $returnArray = $helper->generateReturnJsArray($pathLoadedFiles, unserialize($savedFiles));
+
         $returnArray = $helper->generateMinFiles($returnArray, $dc->activeRecord->id);
 
         return serialize($returnArray);
