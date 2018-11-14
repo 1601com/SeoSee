@@ -1,16 +1,39 @@
 <?php
 
+
 namespace agentur1601com\seosee;
 use MatthiasMullie\Minify;
 
+/**
+ * Class Helper
+ * @package agentur1601com\seosee
+ * @author LBeckX <lb@1601.com>
+ */
 class Helper
 {
-    protected $assetsPath =         TL_ROOT . "/web/assets";
+    /**
+     * @var string $assetsPath
+     */
+    protected $assetsPath       =   TL_ROOT . "/web/assets";
 
+    /**
+     * @var string $assetsPathScript
+     */
     protected $assetsPathScript =   TL_ROOT . "/web/assets/js";
 
+    /**
+     * @var string $assetsPathStyles
+     */
     protected $assetsPathStyles =   TL_ROOT . "/web/assets/css";
 
+    /**
+     * @var string $subDirPrefix
+     */
+    protected $subDirPrefix     =   "_seosee_";
+
+    /**
+     * Helper constructor.
+     */
     public function __construct()
     {
         if(!is_dir($this->assetsPath))
@@ -109,7 +132,7 @@ class Helper
      * @param $savedFiles
      * @return array
      */
-    public function generateReturnJsArray($foundedFiles,$savedFiles)
+    public function returnMultiColumnWizardArray($foundedFiles, $savedFiles)
     {
         $savedFiles = array_reverse($savedFiles);
 
@@ -161,9 +184,9 @@ class Helper
      */
     public function generateMinFiles(array $filesArray, $subDir = "sub", $pathKey = "js_files_path")
     {
-        if(!empty($subDir))
+        if(!empty($subDir) && $subDir !== null)
         {
-            $this->assetsPathScript = $this->assetsPathScript . "/" . self::safePath($subDir);
+            $this->assetsPathScript = $this->assetsPathScript . "/" . self::safePath($this->subDirPrefix . $subDir);
 
             if(!$this->createDir($this->assetsPathScript))
             {
@@ -183,16 +206,12 @@ class Helper
 
                 $file["js_files_path_min"] = $this->assetsPathScript . "/" . $minFileName;
 
-                try{
-                    $this->safeMiniJs($filePath,$file["js_files_path_min"]);
-                    $file["js_files_path_min"] = str_replace(TL_ROOT."/web","",$file["js_files_path_min"]);
-                }
-                catch (Exception $e)
-                {
-                    echo $e;
-                }
+                $this->safeMiniJs($filePath, $file["js_files_path_min"]);
+
+                $file["js_files_path_min"] = str_replace(TL_ROOT."/web/","", $file["js_files_path_min"]);
             }
         }
+
         return $filesArray;
     }
 
@@ -239,6 +258,10 @@ class Helper
                 elseif (is_string($path) && !file_exists($path))
                 {
                     $minifier->add($path);
+                }
+                else
+                {
+                    throw new Exception("Source file does not exists. Must be string or string-array");
                 }
             }
         }

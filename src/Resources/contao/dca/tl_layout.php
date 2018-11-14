@@ -79,6 +79,11 @@ use agentur1601com\seosee\Helper;
 
 class seoseeJsFiles extends Backend
 {
+    /**
+     * @param $savedFiles
+     * @param DataContainer $dc
+     * @return string
+     */
     public function loadJsFiles($savedFiles,DataContainer $dc)
     {
         $helper = new Helper();
@@ -98,7 +103,7 @@ class seoseeJsFiles extends Backend
             $pathLoadedFiles = $helper->searchDir(TL_ROOT . "/files");
         }
 
-        $returnArray = $helper->generateReturnJsArray($pathLoadedFiles, unserialize($savedFiles));
+        $returnArray = $helper->returnMultiColumnWizardArray($pathLoadedFiles, unserialize($savedFiles));
 
         $returnArray = $helper->generateMinFiles($returnArray, $dc->activeRecord->id);
 
