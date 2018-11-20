@@ -208,7 +208,7 @@ class Helper
 
                 $this->safeMiniJs($filePath, $file["js_files_path_min"]);
 
-                $file["js_files_path_min"] = str_replace(TL_ROOT."/web/","", $file["js_files_path_min"]);
+                $file["js_files_path_min"] = str_replace(TL_ROOT."/web/","/", $file["js_files_path_min"]);
             }
         }
 
