@@ -3,6 +3,7 @@
 
 namespace agentur1601com\seosee;
 use MatthiasMullie\Minify;
+use FilesModel;
 
 /**
  * Class Helper
@@ -211,7 +212,6 @@ class Helper
                 $file["js_files_path_min"] = str_replace(TL_ROOT."/web/","/", $file["js_files_path_min"]);
             }
         }
-
         return $filesArray;
     }
 
@@ -222,6 +222,36 @@ class Helper
     public static function safePath($path)
     {
         return rtrim(ltrim(trim(preg_replace("/(\/+)/","/",$path)),"/"),"/");
+    }
+
+    /**
+     * @param $fileTree
+     * @return array
+     * @throws \Exception
+     */
+    public function getPathsByUUIDs($fileTree):array
+    {
+        if(!$fileTree)
+        {
+            return [];
+        }
+
+        if(!is_array($fileTree))
+        {
+            $fileTree = unserialize($fileTree);
+        }
+
+        if(!is_array($fileTree))
+        {
+            throw new \Exception("File Tree must be an Array - is type " . gettype ( $fileTree ));
+        }
+
+        foreach ($fileTree as &$path)
+        {
+            $path = FilesModel::findByPk($path)->path;
+        }
+
+        return $fileTree;
     }
 
     /**
