@@ -41,7 +41,6 @@ class StyleLoader
      */
     public function loadStyles($objPage, $objLayout, $objPageRegular)
     {
-        //var_dump($objLayout->seoseeStyleFilesLoad);
         if($objLayout->seoseeStyleFilesLoad && is_array(($styleFiles = unserialize($objLayout->seoseeStyleFilesLoad))))
         {
             foreach ($styleFiles as $styleFile)
@@ -58,21 +57,30 @@ class StyleLoader
                 switch ($styleFile['style_param'])
                 {
                     case "head":
-                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getCombinedFile()}'>";
+                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
                         break;
                     case "footer":
-                        $GLOBALS['TL_BODY'][] = "<link rel='stylesheet' href='{$combinerObj->getCombinedFile()}'>";
+                        $GLOBALS['TL_BODY'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
                         break;
                     case "preload":
-                        $GLOBALS['TL_HEAD'][] = "<link rel='preload' href='{$combinerObj->getCombinedFile()}' as='style'>";
-                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getCombinedFile()}'>";
+                        $GLOBALS['TL_HEAD'][] = "<link rel='preload' href='{$combinerObj->getFileUrls()[0]}' as='style'>";
+                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
                         break;
                     case "preload_push":
-                        header("Link: <" . $combinerObj->getCombinedFile() . ">; rel=preload; as=style",false);
-                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getCombinedFile()}'>";
+                        header("Link: <" . $combinerObj->getFileUrls()[0] . ">; rel=preload; as=style",false);
+                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
                         break;
                 }
             }
         }
+    }
+
+    /**
+     * @param $file
+     * @ToDo implement method
+     */
+    public function checkModified($file)
+    {
+
     }
 }

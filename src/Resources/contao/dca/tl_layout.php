@@ -9,9 +9,15 @@ $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeJsPath'] = [
     'exclude'                 => true,
     'inputType'               => 'fileTree',
     'eval'                    => [
-        'multiple'=>true,'fieldType'=>'checkbox','mandatory'=>false,'files'=>false,'tl_class'=>'w50 m12','submitOnChange'=>true
+        'multiple'=>true,
+        'fieldType'=>'checkbox',
+        'mandatory'=>false,
+        'files'=>false,
+        'tl_class'=>'w50 m12 seoseeJsPath',
+        'submitOnChange'=>true,
+        'alwaysSave'=>true
     ],
-    'sql'                     => "BLOB NULL"
+    'sql'                     => "BLOB NULL",
 ];
 
 $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeJsFiles'] = [
@@ -81,7 +87,7 @@ $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeJsFiles'] = [
         ],
     ],
     'load_callback'           => [
-        ['seoSeeFiles', 'loadJsFiles']
+        ['seoSeeFiles', 'loadJsFilesV2']
     ],
     'sql'                     => "blob NULL"
 ];
@@ -91,8 +97,16 @@ $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeStyleFiles'] = [
     'label'                   => &$GLOBALS['TL_LANG']['tl_layout']['seoseeStyleFiles'],
     'exclude'                 => true,
     'inputType'               => 'fileTree',
-    'eval'                    => ['multiple'=>true, 'fieldType'=>'checkbox', 'filesOnly'=>true, 'extensions'=>'css,scss,less','submitOnChange'=>true],
-    'sql'                     => "BLOB NULL"
+    'eval'                    => [
+        'multiple'=>true,
+        'fieldType'=>'checkbox',
+        'filesOnly'=>true,
+        'extensions'=>'css,scss,less',
+        'submitOnChange'=>true,
+        'alwaysSave'=>true,
+        'tl_class' => 'seoseeStyleFiles'
+    ],
+    'sql'                     => "BLOB NULL",
 ];
 
 $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeStyleFilesLoad'] = [
@@ -144,14 +158,12 @@ $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeStyleFilesLoad'] = [
     'load_callback'           => [
         ['seoSeeFiles', 'loadStyleFiles']
     ],
-    'save_callback'           => [
-        ['seoSeeFiles', 'saveStyleFiles']
-    ],
     'sql'                     => "blob NULL"
 ];
 
 use agentur1601com\seosee\Helper;
 use agentur1601com\seosee\JsLoader;
+use agentur1601com\seosee\JsLoaderV2;
 use agentur1601com\seosee\StyleLoader;
 class seoSeeFiles extends Backend
 {
@@ -163,6 +175,8 @@ class seoSeeFiles extends Backend
      */
     public function loadJsFiles($savedFiles,DataContainer $dc)
     {
+        if (TL_MODE == 'BE') $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/seosee/scriptLoader.js|static';
+
         $Helper = new Helper();
         $JsLoader = new JsLoader();
 
@@ -179,7 +193,7 @@ class seoSeeFiles extends Backend
         }
         else
         {
-            $pathLoadedFiles = $Helper->searchDir(TL_ROOT . "/files");
+            $pathLoadedFiles = [];
         }
 
         $returnArray = $JsLoader->returnMultiColumnWizardArray($pathLoadedFiles, unserialize($savedFiles));
@@ -187,6 +201,30 @@ class seoSeeFiles extends Backend
         $returnArray = $JsLoader->generateMinFiles($returnArray, $dc->activeRecord->id);
 
         return serialize($returnArray);
+    }
+
+
+    public function loadJsFilesV2($savedFiles,DataContainer $dc)
+    {
+        if (TL_MODE == 'BE') $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/seosee/scriptLoader.js|static';
+        
+        $Helper = new Helper();
+        $JsLoader = new JsLoaderV2();
+
+        $paths = $Helper->getPathsByUUIDs($dc->activeRecord->seoseeJsPath);
+
+        if(empty($paths))
+        {
+            return serialize([]);
+        }
+
+        $pathLoadedFiles = [];
+        foreach ($paths as $path)
+        {
+            $pathLoadedFiles = array_merge($pathLoadedFiles, $Helper->searchDir(TL_ROOT . "/" . Helper::safePath($path)));
+        }
+
+        return $JsLoader->returnMultiColumnWizardArray($pathLoadedFiles, unserialize($savedFiles));
     }
 
     /**
@@ -197,6 +235,8 @@ class seoSeeFiles extends Backend
      */
     public function loadStyleFiles($savedFiles,DataContainer $dc)
     {
+        if (TL_MODE == 'BE') $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/seosee/styleLoader.js|static';
+
         $StyleLoader = new StyleLoader();
         $Helper = new Helper();
 
@@ -208,10 +248,5 @@ class seoSeeFiles extends Backend
         }
 
         return $StyleLoader->returnMultiColumnWizardArray($files,$savedFiles);
-    }
-
-    public function saveStyleFiles($savedFiles,DataContainer $dc)
-    {
-        return $savedFiles;
     }
 }
