@@ -17,7 +17,7 @@ $ composer require agentur1601com/seosee
 
 ### Einstellungen JS
 
-* Die Quelle der JavaScript-Dateien wird über den sog. FileTree konfiguriert
+* Die Quelle der JavaScript-Dateien wird über den FileTree konfiguriert
 * JavaScript-Dateien können einfach über das Seitenlayout (Contao-BE) per Checkbox 
   eingebunden werden
 * Die Reihenfolge kann per Drag&Drop angepasst werden
