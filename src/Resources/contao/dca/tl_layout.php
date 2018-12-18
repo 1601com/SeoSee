@@ -87,11 +87,10 @@ $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeJsFiles'] = [
         ],
     ],
     'load_callback'           => [
-        ['seoSeeFiles', 'loadJsFilesV2']
+        ['seoSeeFiles', 'loadJsFiles']
     ],
     'sql'                     => "blob NULL"
 ];
-
 
 $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeStyleFiles'] = [
     'label'                   => &$GLOBALS['TL_LANG']['tl_layout']['seoseeStyleFiles'],
@@ -163,53 +162,15 @@ $GLOBALS['TL_DCA']['tl_layout']['fields']['seoseeStyleFilesLoad'] = [
 
 use agentur1601com\seosee\Helper;
 use agentur1601com\seosee\JsLoader;
-use agentur1601com\seosee\JsLoaderV2;
 use agentur1601com\seosee\StyleLoader;
 class seoSeeFiles extends Backend
 {
-    /**
-     * @param $savedFiles
-     * @param DataContainer $dc
-     * @return string
-     * @throws Exception
-     */
     public function loadJsFiles($savedFiles,DataContainer $dc)
     {
         if (TL_MODE == 'BE') $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/seosee/scriptLoader.js|static';
 
         $Helper = new Helper();
         $JsLoader = new JsLoader();
-
-        $pathLoadedFiles = [];
-
-        $paths = $Helper->getPathsByUUIDs($dc->activeRecord->seoseeJsPath);
-
-        if(!empty($paths))
-        {
-            foreach ($paths as $path)
-            {
-                $pathLoadedFiles = array_merge($pathLoadedFiles, $Helper->searchDir(TL_ROOT . "/" . Helper::safePath($path)));
-            }
-        }
-        else
-        {
-            $pathLoadedFiles = [];
-        }
-
-        $returnArray = $JsLoader->returnMultiColumnWizardArray($pathLoadedFiles, unserialize($savedFiles));
-
-        $returnArray = $JsLoader->generateMinFiles($returnArray, $dc->activeRecord->id);
-
-        return serialize($returnArray);
-    }
-
-
-    public function loadJsFilesV2($savedFiles,DataContainer $dc)
-    {
-        if (TL_MODE == 'BE') $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/seosee/scriptLoader.js|static';
-        
-        $Helper = new Helper();
-        $JsLoader = new JsLoaderV2();
 
         $paths = $Helper->getPathsByUUIDs($dc->activeRecord->seoseeJsPath);
 

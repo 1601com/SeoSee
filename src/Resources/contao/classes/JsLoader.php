@@ -1,41 +1,12 @@
 <?php
 
 namespace agentur1601com\seosee;
-use MatthiasMullie\Minify;
 use agentur1601com\seosee\Helper;
+use MatthiasMullie\Minify;
+use Contao\Combiner;
 
 class JsLoader
 {
-    /**
-     * @var string $assetsPath
-     */
-    protected $assetsPath       =   TL_ROOT . "/web/assets";
-
-    /**
-     * @var string $assetsPathScript
-     */
-    protected $assetsPathScript =   TL_ROOT . "/web/assets/js";
-
-    /**
-     * @var string $subDirPrefix
-     */
-    protected $subDirPrefix     =   "_seosee_";
-
-    /**
-     * @var \agentur1601com\seosee\Helper|null
-     */
-    public $Helper = null;
-
-    public function __construct()
-    {
-        $this->Helper = new Helper();
-        if(!is_dir($this->assetsPath))
-        {
-            throw new Exception("Assets folder do not exists.");
-        }
-        $this->Helper->createDir($this->assetsPathScript);
-    }
-
     /**
      * @param $foundedFiles
      * @param $savedFiles
@@ -82,71 +53,47 @@ class JsLoader
                 "js_files_path_min" => "",
             ];
         }
-        return $returnArray;
+
+        return serialize($returnArray);
     }
 
     /**
-     * @param array $filesArray
-     * @param string $subDir
-     * @param string $pathKey
-     * @return array
+     * @param $sourceFile
+     * @param $destinationFile
+     * @return mixed
      */
-    public function generateMinFiles(array $filesArray, $subDir = "sub", $pathKey = "js_files_path")
+    public function minimizeFile($sourceFile,$destinationFile)
     {
-        if(!empty($subDir) && $subDir !== null)
-        {
-            $this->assetsPathScript = $this->assetsPathScript . "/" . $this->Helper->safePath($this->subDirPrefix . $subDir);
-
-            if(!$this->Helper->createDir($this->assetsPathScript))
-            {
-                throw new Exception("Can't create dir with name: " . $this->assetsPathScript);
-            }
-        }
-
-        $this->Helper->cleanDir($this->assetsPathScript);
-
-        foreach ($filesArray as &$file)
-        {
-            $filePath = TL_ROOT . $file[$pathKey];
-
-            if(file_exists($filePath) && $file["select"])
-            {
-                $minFileName = $this->Helper->generateMinFileName($file[$pathKey]);
-
-                $file["js_files_path_min"] = $this->assetsPathScript . "/" . $minFileName;
-
-                $this->safeMiniJs($filePath, $file["js_files_path_min"]);
-
-                $file["js_files_path_min"] = str_replace(TL_ROOT."/web/","/", $file["js_files_path_min"]);
-            }
-        }
-        return $filesArray;
+        $Minify = new Minify\JS();
+        $Minify->add($sourceFile);
+        $Minify->minify($destinationFile);
+        return $destinationFile;
     }
 
     /**
-     * Add Js-Files from Layout to fe_page
      * @param $objPage
      * @param $objLayout
      * @param $objPageRegular
      */
-    public function loadJsToLayout($objPage, $objLayout, $objPageRegular)
+    public function loadJs($objPage, $objLayout, $objPageRegular)
     {
-        if($objLayout->seoseeJsFiles && is_array(($jsFilesArray = unserialize($objLayout->seoseeJsFiles))))
+        if(isset($objLayout->seoseeJsFiles) && is_array(($jsFilesArray = unserialize($objLayout->seoseeJsFiles))))
         {
             foreach ($jsFilesArray as $jsFile)
             {
-                if(!$jsFile["select"])
+                $link = $jsFile["js_files_path"];
+
+                if(!$jsFile["select"] || !file_exists(TL_ROOT . $link))
                 {
                     continue;
                 }
 
-                if($jsFile["js_minimize"])
+                if($jsFile['js_minimize'])
                 {
-                    $link = $jsFile["js_files_path_min"];
-                }
-                else
-                {
-                    $link = $jsFile["js_files_path"];
+                    $Combinder = new Combiner();
+                    $Combinder->add($jsFile["js_files_path"]);
+                    $link = $Combinder->getCombinedFile();
+                    $this->minimizeFile(TL_ROOT . $jsFile["js_files_path"],TL_ROOT . "/" . $link);
                 }
 
                 switch ($jsFile["js_param"])
@@ -162,6 +109,9 @@ class JsLoader
                         header("Link: <" . $link . ">; rel=preload; as=script",false);
                         $GLOBALS['TL_JAVASCRIPT'][] = $link;
                         break;
+                    case 'defer':
+                        $GLOBALS['TL_HEAD'][] = "<script src='".$link."' defer></script>";
+                        break;
                     default:
                         $GLOBALS['TL_JAVASCRIPT'][] = $link."|".$jsFile["js_param"];
                 }
@@ -169,53 +119,4 @@ class JsLoader
         }
     }
 
-    /**
-     * @param $sourcePath
-     * @param string|null $safePath
-     * @return Minify\JS
-     */
-    protected function safeMiniJs($sourcePath,string $safePath = null)
-    {
-        if(!is_string($safePath) || empty($safePath))
-        {
-            throw new Exception("Safepath must be a string: ".addslashes($safePath));
-        }
-
-        $minifier = new Minify\JS();
-
-        if(is_string($sourcePath) && !file_exists($sourcePath))
-        {
-            throw new Exception("Source file does not exists: " . addslashes($sourcePath));
-        }
-        elseif(is_string($sourcePath) && file_exists($sourcePath))
-        {
-            $minifier->add($sourcePath);
-        }
-        elseif(is_array($sourcePath))
-        {
-            foreach ($sourcePath as $path)
-            {
-                if(is_string($path) && !file_exists($path))
-                {
-                    throw new Exception("Source file does not exists: " . addslashes($path));
-                }
-                elseif (is_string($path) && !file_exists($path))
-                {
-                    $minifier->add($path);
-                }
-                else
-                {
-                    throw new Exception("Source file does not exists. Must be string or string-array");
-                }
-            }
-        }
-        else
-        {
-            throw new Exception("Source file does not exists. Must be string or string-array");
-        }
-
-        $minifier->minify($safePath);
-
-        return $minifier;
-    }
 }
