@@ -3,8 +3,12 @@ $GLOBALS['TL_LANG']['tl_layout']['seosee_seo_files_js_legend'] = "Optimiertes Ja
 
 $GLOBALS['TL_LANG']['tl_layout']['seoseeJsPath'] = [
     "JS Path",
-    "Gib eine kommagetrennte Liste mit relativen Pfaden zu JavaScript-Dateien an.
-    Beispiel: \"templates/myFiles\" oder \"files/jsFolder,files/myOtherJsFolder\""
+    "Wähle Ordner aus, um die JavaScript Dateien daraus zu laden"
+];
+
+$GLOBALS['TL_LANG']['tl_layout']['seoseeModifyExtJs'] = [
+    "Externes JavaScript überarbeiten",
+    "Auswählen um die externen JavaScript-Dateien zu überarbeiten."
 ];
 
 $GLOBALS['TL_LANG']['tl_layout']['seoseeJsFiles'] = [

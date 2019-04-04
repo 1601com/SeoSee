@@ -1,6 +1,5 @@
 <?php
 
-
 namespace agentur1601com\seosee;
 use FilesModel;
 /**

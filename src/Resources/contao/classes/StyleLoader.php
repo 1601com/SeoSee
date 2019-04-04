@@ -19,9 +19,12 @@ class StyleLoader
 
         foreach ($savedFiles as $savedFile)
         {
-            if(($key = array_search($savedFile['style_files_path'],$foundedFiles)) !== false)
+            if(($key = array_search($savedFile['style_files_path'], $foundedFiles)) !== false)
             {
-                $returnArray[] = ['style_files_path' => $savedFile['style_files_path'] , 'style_param'=>$savedFile['style_param']];
+                $returnArray[] = [
+                    'style_files_path' => $savedFile['style_files_path'],
+                    'style_param' => $savedFile['style_param']
+                ];
                 unset($foundedFiles[$key]);
             }
         }
@@ -57,19 +60,37 @@ class StyleLoader
                 switch ($styleFile['style_param'])
                 {
                     case "head":
-                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
+                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='/{$combinerObj->getFileUrls()[0]}'>";
                         break;
                     case "footer":
-                        $GLOBALS['TL_BODY'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
+                        $GLOBALS['TL_BODY'][] = "<link rel='stylesheet' href='/{$combinerObj->getFileUrls()[0]}'>";
                         break;
                     case "preload":
-                        $GLOBALS['TL_HEAD'][] = "<link rel='preload' href='{$combinerObj->getFileUrls()[0]}' as='style'>";
-                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
+                        $GLOBALS['TL_HEAD'][] = "<link rel='preload' href='/{$combinerObj->getFileUrls()[0]}' as='style'>";
+                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='/{$combinerObj->getFileUrls()[0]}'>";
                         break;
                     case "preload_push":
-                        header("Link: <" . $combinerObj->getFileUrls()[0] . ">; rel=preload; as=style",false);
-                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='{$combinerObj->getFileUrls()[0]}'>";
+                        header("Link: </" . $combinerObj->getFileUrls()[0] . ">; rel=preload; as=style",false);
+                        $GLOBALS['TL_HEAD'][] = "<link rel='stylesheet' href='/{$combinerObj->getFileUrls()[0]}'>";
                         break;
+                    case "delay":
+                        $GLOBALS['TL_HEAD'][] = "
+<noscript id='deferred-styles'>
+    <link rel='stylesheet' type='text/css' href='{$combinerObj->getFileUrls()[0]}'/>
+</noscript>
+<script>
+    var loadDeferredStyle = function() {
+      var addStylesNode = document.getElementById('deferred-styles');
+      var replacement = document.createElement('div');
+        replacement.innerHTML = addStylesNode.textContent;
+        document.body.appendChild(replacement);
+        addStylesNode.parentElement.removeChild(addStylesNode);
+    }
+    var raf = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+          window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+      if (raf) raf(function() { window.setTimeout(loadDeferredStyle, 0); });
+      else window.addEventListener('load', loadDeferredStyle);    
+</script>";
                 }
             }
         }
